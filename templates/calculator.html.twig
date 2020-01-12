@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Calculator</title>
+    </head>
+    <body>
+        <h2>Calculator</h2>
+        <p>
+            Instrucitons:
+            <list>
+                <ol>Valid symbols are: 
+                    <list>
+                        <ul>Any digit (including decimal dot .)</ul>
+                        <ul>Any operation symbol: +, -, *, /</ul>
+                    </list>
+                </ol>
+                <ol>Valid expression is any expression which consists of only valid symbols and is a complete (true) expression.</ol>
+            </list>
+        </p>
+        <form method="POST" action="">
+            <input type="text" id="expr" name="expression" value="{{ expression }}"/>
+            <input type="submit" id="sbmt" value="="/>
+            <input type="text" value="{{ result }}" readonly/>
+        </form>
+        <p id="error" style="color:red">{{ error }}</p>
+        
+        <script>
+            var inputField = document.getElementById('expr');
+            var submitBtn = document.getElementById('sbmt');
+            
+            inputField.onkeyup = function(event) {
+                if(inputField.value.match(/^(?:-?\d+(?:\.\d+)?[-+\/*])+-?\d+(?:\.\d+)?$/)) {
+                    submitBtn.disabled = false;
+                    inputField.style.border = "1px solid black";
+                } else {
+                    submitBtn.disabled = true;
+                    inputField.style.border = "1px solid red";
+                }
+            };
+        </script>
+    </body>
+</html>

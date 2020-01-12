@@ -1,0 +1,3 @@
+index:
+    path: /calculator
+    controller: App\Controller\CalculatorController::calculate

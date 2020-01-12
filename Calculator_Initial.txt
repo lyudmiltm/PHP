@@ -1,0 +1,94 @@
+<?php
+    interface Operation
+    {
+        public function calc($valueL,$valueR);
+    }
+    
+    class Addition implements Operation
+    {
+        public function calc($valueL,$valueR) {
+            return $valueL+$valueR;
+        }
+    }
+    
+    class Substraction implements Operation
+    {
+        public function calc($valueL,$valueR) {
+            return $valueL-$valueR;
+        }
+    }
+    
+    class Multiplication implements Operation
+    {
+        public function calc($valueL,$valueR) {
+            return $valueL*$valueR;
+        }
+    }
+    
+    class Divison implements Operation
+    {
+        public function calc($valueL,$valueR) {
+            if($valueR == 0)
+                return 0;
+            return $valueL/$valueR;
+        }
+    }
+    
+    class Calculator
+    {
+        private $priorities = ["*"=>3,"/"=>4,"-"=>2,"+"=>1];
+        private $operation = ["*"=>"Multiplication","/"=>"Divison","-"=>"Substraction","+"=>"Addition"];
+        
+        function __construct() {
+            print "In constructor\n";
+        }
+    
+        function __destruct() {
+            print "Destroying " . __CLASS__ . "\n";
+        }
+        
+        public function eval($expr) {
+            preg_match_all('/(?:(?<!\d)-)?\d+(?:\.\d+)?/', $expr, $numbers);
+            preg_match_all('/(?<![-+*\/])[-+*\/]/', $expr, $operations);
+            
+            if(count($numbers[0]) !== count($operations[0])+1) 
+                return 0;
+                
+            return $this->subEval($numbers[0], $operations[0]);
+        }
+        
+        private function determinePriority($operations) {
+            $top = 0;
+            for($i=0; $i<count($operations); ++$i) {
+                if($this->priorities[$operations[$top]]<$this->priorities[$operations[$i]]) {
+                    $top=$i;
+                    // If we've found a top priority operator, break the cycle.
+                    // Reason is there is no better candiate.
+                    if($this->priorities[$operations[$i]]==4) break;
+                }
+            }
+            
+            return $top;
+        }
+        
+        private function subEval($numbers, $operations) {
+            // If we have exhausted the operations list, we've reached a result.
+            if(count($operations) == 0)
+                return $numbers[0];
+                
+            $top = $this->determinePriority($operations);
+            $subResult = new $this->operation[$operations[$top]]();
+            $subResult = $subResult->calc($numbers[$top],$numbers[$top+1]);
+            $numbers[$top] = $subResult;
+            \array_splice($numbers,$top+1,1);
+            \array_splice($operations,$top,1);
+            
+            return $this->subEval($numbers,$operations);
+        }
+        
+    }
+    
+    $tet = new Calculator();
+    print $tet->eval("15+3*4.5-4/8")."\n";
+    print $tet->eval("2+2*3/2-1+2")."\n";
+    print $tet->eval("2+2*7/2-1+3.3")."\n";
