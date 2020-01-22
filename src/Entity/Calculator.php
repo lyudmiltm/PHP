@@ -2,23 +2,41 @@
 
 namespace App\Entity;
 
-use App\Entity\Operation\Addition;
-use App\Entity\Operation\Substraction;
-use App\Entity\Operation\Multiplication;
-use App\Entity\Operation\Division;
+/**
+ * Removed due to redundancy.
+    use App\Entity\Operation\Addition;
+    use App\Entity\Operation\Substraction;
+    use App\Entity\Operation\Multiplication;
+    use App\Entity\Operation\Division;
+ */
 
 class Calculator
 {
-    private $order = ["*"=>3,"/"=>4,"-"=>2,"+"=>1];
-    private $operation = ["*"=>"Multiplication","/"=>"Division","-"=>"Substraction","+"=>"Addition"];
-    private $numRegex = '/(?:(?<!\d)-)?\d+(?:\.\d+)?/';
-    private $opRegex = '/(?<![-+*\/])[-+*\/]/';
+    /**
+     * Private variables which 'configure' the class behaviour.
+     */
+    private array $order = ["*"=>3,"/"=>4,"-"=>2,"+"=>1];
+    private array $operation = ["*"=>"Multiplication","/"=>"Division","-"=>"Substraction","+"=>"Addition"];
+    private string $numRegex = '/(?:(?<!\d)-)?\d+(?:\.\d+)?/';
+    private string $opRegex = '/(?<![-+*\/])[-+*\/]/';
+    private string $validateRegex = '/^(?:-?\d+(?:\.\d+)?[-+\/*])+-?\d+(?:\.\d+)?$/';
+    
+    /**
+     * @param string $expr
+     * @return bool
+     */
+    private function validateExpression(string $expr) : bool {
+        return preg_match($this->validateRegex, $expr);
+    }
     
     /**
      * @param string $expr
      * @return float
      */
-    public function eval($expr) {
+    public function eval(string $expr) : ?float {
+        if(!$this->validateExpression($expr))
+            return null;
+        
         preg_match_all($this->numRegex, $expr, $numbers);
         preg_match_all($this->opRegex, $expr, $operations);
         
@@ -32,7 +50,7 @@ class Calculator
      * @param array $operations
      * @return integer
      */
-    private function determinePriority($operations) {
+    private function determinePriority(array $operations) : int {
         $top = 0;
         for($i=0; $i<count($operations); ++$i) {
             if($this->order[$operations[$top]]<$this->order[$operations[$i]]) {
@@ -51,16 +69,16 @@ class Calculator
      * @param array $operations
      * @return float
      */
-    private function subEval($numbers, $operations) {
+    private function subEval(array $numbers, array $operations) : float {
         // If we have exhausted the operations list, we've reached a result.
         if(count($operations) == 0)
             return $numbers[0];
             
         $top = $this->determinePriority($operations);
-        $subResult = 'App\\Entity\\Operation\\'.$this->operation[$operations[$top]];
-        $subResult = new $subResult();
-        $subResult = $subResult->calc($numbers[$top],$numbers[$top+1]);
-        $numbers[$top] = $subResult;
+        $subResultClass = 'App\\Entity\\Operation\\'.$this->operation[$operations[$top]];
+        $subResultObj = new $subResultClass();
+        $subResultValue = $subResultObj->calc($numbers[$top],$numbers[$top+1]);
+        $numbers[$top] = $subResultValue;
         \array_splice($numbers,$top+1,1);
         \array_splice($operations,$top,1);
         
